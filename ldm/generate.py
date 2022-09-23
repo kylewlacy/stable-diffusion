@@ -374,16 +374,16 @@ class Generate:
             )
         return results
 
-    def _make_images(self, img_path, mask_path, width, height, fit=False):
+    def _make_images(self, img, mask, width, height, fit=False):
         init_image      = None
         init_mask       = None
-        if not img_path:
+        if not img:
             return None,None
 
-        image        = self._load_img(img_path, width, height, fit=fit) # this returns an Image
-        init_image   = self._create_init_image(image)                   # this returns a torch tensor
+        image        = self._load_img(img, width, height, fit=fit) # this returns an Image
+        init_image   = self._create_init_image(image)              # this returns a torch tensor
 
-        if self._has_transparency(image) and not mask_path:      # if image has a transparent area and no mask was provided, then try to generate mask
+        if self._has_transparency(image) and not mask:      # if image has a transparent area and no mask was provided, then try to generate mask
             print('>> Initial image has transparent areas. Will inpaint in these regions.')
             if self._check_for_erasure(image):
                 print(
@@ -393,8 +393,8 @@ class Generate:
                 )
             init_mask = self._create_init_mask(image)                   # this returns a torch tensor
 
-        if mask_path:
-            mask_image  = self._load_img(mask_path, width, height, fit=fit) # this returns an Image
+        if mask:
+            mask_image  = self._load_img(mask, width, height, fit=fit) # this returns an Image
             init_mask   = self._create_init_mask(mask_image)
 
         return init_image,init_mask
@@ -566,15 +566,25 @@ class Generate:
 
         return model
 
-    def _load_img(self, path, width, height, fit=False):
-        assert os.path.exists(path), f'>> {path}: File not found'
+    def _load_img(self, img, width, height, fit=False):
+        if isinstance(img, Image.Image):
+            image = img
+            print(
+                f'>> using provided input image of size {image.width}x{image.height}'
+            )
+        elif isinstance(image, str):
+            assert os.path.exists(img), f'>> {img}: File not found'
 
-        #        with Image.open(path) as img:
-        #            image = img.convert('RGBA')
-        image = Image.open(path)
-        print(
-            f'>> loaded input image of size {image.width}x{image.height} from {path}'
-        )
+            image = Image.open(img)
+            print(
+                f'>> loaded input image of size {image.width}x{image.height} from {img}'
+            )
+        else:
+            image = Image.open(img)
+            print(
+                f'>> loaded input image of size {image.width}x{image.height}'
+            )
+
         if fit:
             image = self._fit_image(image,(width,height))
         else:
