@@ -34,9 +34,9 @@ class Inpaint(Img2Img):
             )
             sampler = DDIMSampler(self.model, device=self.model.device)
 
-            sampler.make_schedule(
-                ddim_num_steps=steps, ddim_eta=ddim_eta, verbose=False
-            )
+        sampler.make_schedule(
+            ddim_num_steps=steps, ddim_eta=ddim_eta, verbose=False
+        )
 
         device_type,scope   = choose_autocast_device(self.model.device)
         with scope(device_type):
